@@ -1,10 +1,23 @@
 import json
 import psutil
+import article
 import win32con
+import pyautogui
 import win32clipboard
 from time import sleep
 from pywinauto.keyboard import send_keys
 from pywinauto.application import Application
+
+from win32con import IDC_HAND
+from win32gui import LoadCursor, GetCursorInfo
+DEFAULT_CURSORS = {
+  LoadCursor(0, IDC_HAND): 'Hand'
+}
+
+# 获取光标信息
+def get_cursor_info():
+  cursor_info = GetCursorInfo()[1]
+  return DEFAULT_CURSORS.get(cursor_info, 'None')
 
 # 获取进程id
 def get_pid(processName):
@@ -63,37 +76,35 @@ def search(app, main_Win): # 搜一搜窗口
     get_articles(app)
     sleep(2)
 
-def get_articles(): # 公众号窗口
+def get_latest_article():
+  pyautogui.moveTo(550/2, 15, duration=1)
+  for i in range(1040):
+    pyautogui.moveRel(0, 10, duration=0.1)
+    cursor = get_cursor_info()
+    if cursor == 'Hand':
+      return pyautogui.position()
+
+def get_articles(app): # 公众号窗口
   # 抓取最近的推送文章
-  procId = get_pid("WeChat.exe")
-  app = Application(backend='uia').connect(process=procId)
   profile_Dlg = app.window(class_name='H5SubscriptionProfileWnd')
   profile_Dlg.maximize() # 最大化公众号消息列表
-  document = profile_Dlg.child_window(control_type="Document")
-
-  print(dir(document))
-  # articles = document.children()
-  # for article in articles[5:]:
-  #   print(article)
-    # if(article.texts()[0] != '  '):
-    #   if(article.is_visible()): # 如果文章可见
-    #     article.click_input() # 打开公众号文章
-    #     sleep(5)
-    #     view_Dlg = app.window(class_name='CefWebViewWnd')
-    #     view_Dlg.wait('ready')
-    #     copy_btn = view_Dlg.child_window(title='复制链接地址', control_type='Button').wrapper_object()
-    #     copy_btn.draw_outline(colour='red')
-    #     copy_btn.click_input() # 点击左上角复制链接
-    #     link = get_clipboard()
-    #     with open('articles.txt', 'a') as file:
-    #       file.write(bytes.decode(link))
-    #       file.write('\n')
-
+  # 在1920*1080下的大小是，550x1040
+  x,y = get_latest_article()
+  pyautogui.click()
+  sleep(5) # 等待打开页面
+  view_Dlg = app.window(class_name='CefWebViewWnd')
+  view_Dlg.wait('ready')
+  copy_btn = view_Dlg.child_window(title='复制链接地址', control_type='Button').wrapper_object()
+  copy_btn.draw_outline(colour='red')
+  copy_btn.click_input() # 点击左上角复制链接
+  link = get_clipboard()
+  (tag,title,photoUrl,originUrl,textContent) = article.get_article(link)
+  # todo 插入数据库即可
+  print(tag,title)
   
 if __name__ == '__main__':
   procId = get_pid("WeChat.exe")
   if (procId == -1):
     print("微信未运行")
   else:
-    # get_body(procId)
-    get_articles()
+    get_body(procId)

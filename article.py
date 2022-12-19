@@ -1,7 +1,7 @@
 import re
 from pyquery import PyQuery as pq
 
-def getArticle(originUrl):
+def get_article(originUrl):
   doc = pq(url = originUrl)
   script = doc('script').text()
   # 提取文章封面图, 在script中的var msg_cdn_url里面
