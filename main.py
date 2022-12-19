@@ -78,18 +78,23 @@ def search(app, main_Win): # 搜一搜窗口
 
 def get_latest_article():
   pyautogui.moveTo(550/2, 15, duration=1)
+  enterInner = False # 确保进去消息列表点击，避免点到视频号
   for i in range(1040):
     pyautogui.moveRel(0, 10, duration=0.1)
+    x,y = pyautogui.position()
+    matchColor = pyautogui.pixelMatchesColor(x, y, (243, 243, 243), tolerance=10)
+    if matchColor:
+      enterInner = True
     cursor = get_cursor_info()
-    if cursor == 'Hand':
-      return pyautogui.position()
+    if enterInner and cursor == 'Hand':
+      return x,y
 
 def get_articles(app): # 公众号窗口
   # 抓取最近的推送文章
   profile_Dlg = app.window(class_name='H5SubscriptionProfileWnd')
   profile_Dlg.maximize() # 最大化公众号消息列表
   # 在1920*1080下的大小是，550x1040
-  x,y = get_latest_article()
+  get_latest_article()
   pyautogui.click()
   sleep(5) # 等待打开页面
   view_Dlg = app.window(class_name='CefWebViewWnd')
