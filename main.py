@@ -111,5 +111,6 @@ if __name__ == '__main__':
   procId = get_pid("WeChat.exe")
   if (procId == -1):
     print("微信未运行")
+    pyautogui.alert(text='微信未运行', title='提示', button='OK')
   else:
     get_body(procId)
